@@ -41,7 +41,7 @@ public class TacheDAO {
     }
 
     // Find tasks by state
-    public List<Tache> findByEtat(Tache.EtatTache etat) {
+    public Long findByEtat(Tache.EtatTache etat) {
         TypedQuery<Tache> query = entityManager.createQuery(
                 "SELECT t FROM Tache t WHERE t.etat = :etat", Tache.class);
         query.setParameter("etat", etat);
