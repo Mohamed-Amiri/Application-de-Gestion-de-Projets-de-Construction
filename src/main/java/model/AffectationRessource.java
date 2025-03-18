@@ -2,18 +2,23 @@ package model;
 
 import jakarta.persistence.*;
 
-
+@Entity
+@Table(name = "affectation_ressource")
 public class AffectationRessource {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id_affectation;
 
-
+    @ManyToOne
+    @JoinColumn(name = "id_ressource")
     private Ressource ressource;
 
-
+    @ManyToOne
+    @JoinColumn(name = "id_tache")
     private Tache tache;
 
-
+    @Column(name = "quantite_utilisee")
     private Integer quantite_utilisee;
 
     // Constructeurs

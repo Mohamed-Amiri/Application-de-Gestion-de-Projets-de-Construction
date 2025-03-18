@@ -4,14 +4,30 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.List;
 
-
+@Entity
+@Table(name = "ressource")
 public class Ressource {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id_ressource;
+
+    @Column(name = "nom")
     private String nom;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
     private TypeRessource type;
+
+    @Column(name = "quantite")
     private Integer quantite;
+
+    @Column(name = "fournisseur")
     private String fournisseur;
+
+    @Column(name = "cout_unitaire")
     private BigDecimal cout_unitaire;
+
+    @OneToMany(mappedBy = "ressource", cascade = CascadeType.ALL)
     private List<AffectationRessource> affectations;
 
     public enum TypeRessource {
@@ -85,4 +101,3 @@ public class Ressource {
         this.affectations = affectations;
     }
 }
-

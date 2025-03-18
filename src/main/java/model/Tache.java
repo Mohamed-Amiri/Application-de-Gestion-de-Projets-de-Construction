@@ -4,41 +4,48 @@ import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 
-
+@Entity
+@Table(name = "tache")
 public class Tache {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id_tache;
 
-
+    @Column(name = "nom")
     private String nom;
 
-
+    @Column(name = "description")
     private String description;
 
-
+    @Temporal(TemporalType.DATE)
+    @Column(name = "date_debut")
     private Date date_debut;
 
-
+    @Temporal(TemporalType.DATE)
+    @Column(name = "date_fin")
     private Date date_fin;
 
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "etat")
     private EtatTache etat = EtatTache.EN_ATTENTE;
 
+    @ManyToOne
+    @JoinColumn(name = "id_projet")
+    private Projet projet;
 
-    private projet projet;
-
-
+    @OneToMany(mappedBy = "tache", cascade = CascadeType.ALL)
     private List<AffectationRessource> affectations;
 
-
     public Tache() {}
+
     public enum EtatTache {
         EN_ATTENTE,
         EN_COURS,
         TERMINEE
     }
 
-    public Tache(String nom, String description, Date date_debut, Date date_fin, projet projet) {
+    public Tache(String nom, String description, Date date_debut, Date date_fin, Projet projet) {
         this.nom = nom;
         this.description = description;
         this.date_debut = date_debut;
@@ -46,7 +53,6 @@ public class Tache {
         this.projet = projet;
         this.etat = EtatTache.EN_ATTENTE;
     }
-
 
     public Integer getId_tache() {
         return id_tache;
@@ -96,11 +102,11 @@ public class Tache {
         this.etat = etat;
     }
 
-    public projet getProjet() {
+    public Projet getProjet() {
         return projet;
     }
 
-    public void setProjet(projet projet) {
+    public void setProjet(Projet projet) {
         this.projet = projet;
     }
 
@@ -112,4 +118,3 @@ public class Tache {
         this.affectations = affectations;
     }
 }
-
