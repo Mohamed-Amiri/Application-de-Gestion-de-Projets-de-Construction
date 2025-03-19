@@ -1,94 +1,40 @@
 package dao;
 
 import model.Ressource;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-import java.math.BigDecimal;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class RessourceDAO {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/construction";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "admin";
 
-    private EntityManager entityManager;
-
-    public RessourceDAO(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
-    // Create
-    public void save(Ressource ressource) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(ressource);
-        entityManager.getTransaction().commit();
-    }
-
-    // Read
-    public Ressource findById(Integer id) {
-        return entityManager.find(Ressource.class, id);
-    }
-
-    public List<Ressource> findAll() {
-        TypedQuery<Ressource> query = entityManager.createQuery("SELECT r FROM Ressource r", Ressource.class);
-        return query.getResultList();
-    }
-
-    // Find resources by type
-    public List<Ressource> findByType(Ressource.TypeRessource type) {
-        TypedQuery<Ressource> query = entityManager.createQuery(
-                "SELECT r FROM Ressource r WHERE r.type = :type", Ressource.class);
-        query.setParameter("type", type);
-        return query.getResultList();
-    }
-
-    // Find resources by supplier
-    public List<Ressource> findByFournisseur(String fournisseur) {
-        TypedQuery<Ressource> query = entityManager.createQuery(
-                "SELECT r FROM Ressource r WHERE r.fournisseur = :fournisseur", Ressource.class);
-        query.setParameter("fournisseur", fournisseur);
-        return query.getResultList();
-    }
-
-    // Find resources with unit cost less than specified amount
-    public List<Ressource> findByCoutUnitaireLessThan(BigDecimal cout) {
-        TypedQuery<Ressource> query = entityManager.createQuery(
-                "SELECT r FROM Ressource r WHERE r.cout_unitaire < :cout", Ressource.class);
-        query.setParameter("cout", cout);
-        return query.getResultList();
-    }
-
-    // Find resources with available quantity greater than specified amount
-    public List<Ressource> findByQuantiteGreaterThan(Integer quantite) {
-        TypedQuery<Ressource> query = entityManager.createQuery(
-                "SELECT r FROM Ressource r WHERE r.quantite > :quantite", Ressource.class);
-        query.setParameter("quantite", quantite);
-        return query.getResultList();
-    }
-
-    // Update
-    public void update(Ressource ressource) {
-        entityManager.getTransaction().begin();
-        entityManager.merge(ressource);
-        entityManager.getTransaction().commit();
-    }
-
-    // Delete
-    public void delete(Ressource ressource) {
-        entityManager.getTransaction().begin();
-        entityManager.remove(ressource);
-        entityManager.getTransaction().commit();
-    }
-
-    public void deleteById(Integer id) {
-        Ressource ressource = findById(id);
-        if (ressource != null) {
-            delete(ressource);
+    public void ajouterRessource(Ressource ressource) throws SQLException {
+        String query = "INSERT INTO Ressource (nom, type, quantite, fournisseur, coutUnitaire) VALUES (?, ?, ?, ?, ?)";
+        try (Connection con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, ressource.getNom());
+            ps.setString(2, ressource.getType());
+            ps.setInt(3, ressource.getQuantite());
+            ps.setString(4, ressource.getFournisseur());
+            ps.setDouble(5, ressource.getCoutUnitaire());
+            ps.executeUpdate();
         }
     }
 
-    // Count resources by type
-    public long countByType(Ressource.TypeRessource type) {
-        TypedQuery<Long> query = entityManager.createQuery(
-                "SELECT COUNT(r) FROM Ressource r WHERE r.type = :type", Long.class);
-        query.setParameter("type", type);
-        return query.getSingleResult();
+    public List<Ressource> getToutesLesRessources() throws SQLException {
+        List<Ressource> ressources = new ArrayList<>();
+        String query = "SELECT * FROM Ressource";
+        try (Connection con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                Ressource r = new Ressource(rs.getInt("id"), rs.getString("nom"), rs.getString("type"),
+                        rs.getInt("quantite"), rs.getString("fournisseur"), rs.getDouble("coutUnitaire"));
+                ressources.add(r);
+            }
+        }
+        return ressources;
     }
 }

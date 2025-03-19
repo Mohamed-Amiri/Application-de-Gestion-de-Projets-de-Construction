@@ -1,76 +1,63 @@
 package dao;
 
 import model.Projet;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProjetDAO {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/construction";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "admin";
 
-    private EntityManager entityManager;
-
-    public ProjetDAO(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
-
-    // Create
-    public void save(Projet projet) {
-        entityManager.getTransaction().begin();
-        entityManager.persist(projet);
-        entityManager.getTransaction().commit();
-    }
-
-    // Read
-    public Projet findById(Integer id) {
-        return entityManager.find(Projet.class, id);
-    }
-
-    public List<Projet> findAll() {
-        TypedQuery<Projet> query = entityManager.createQuery("SELECT p FROM Projet p", Projet.class);
-        return query.getResultList();
-    }
-
-    // Find projects by name (partial match)
-    public List<Projet> findByName(String name) {
-        TypedQuery<Projet> query = entityManager.createQuery(
-                "SELECT p FROM Projet p WHERE p.nom LIKE :name", Projet.class);
-        query.setParameter("name", "%" + name + "%");
-        return query.getResultList();
-    }
-
-    // Find projects with budget greater than specified amount
-    public List<Projet> findByBudgetGreaterThan(double budget) {
-        TypedQuery<Projet> query = entityManager.createQuery(
-                "SELECT p FROM Projet p WHERE p.budget > :budget", Projet.class);
-        query.setParameter("budget", budget);
-        return query.getResultList();
-    }
-
-    // Update
-    public void update(Projet projet) {
-        entityManager.getTransaction().begin();
-        entityManager.merge(projet);
-        entityManager.getTransaction().commit();
-    }
-
-    // Delete
-    public void delete(Projet projet) {
-        entityManager.getTransaction().begin();
-        entityManager.remove(projet);
-        entityManager.getTransaction().commit();
-    }
-
-    public void deleteById(Integer id) {
-        Projet projet = findById(id);
-        if (projet != null) {
-            delete(projet);
+    public void ajouterProjet(Projet projet) throws SQLException {
+        String query = "INSERT INTO Projet (nom, description, dateDebut, dateFin, budget) VALUES (?, ?, ?, ?, ?)";
+        try (Connection con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, projet.getNom());
+            ps.setString(2, projet.getDescription());
+            ps.setDate(3, new java.sql.Date(projet.getDateDebut().getTime()));
+            ps.setDate(4, new java.sql.Date(projet.getDateFin().getTime()));
+            ps.setDouble(5, projet.getBudget());
+            ps.executeUpdate();
         }
     }
 
-    // Count all projects
-    public long count() {
-        TypedQuery<Long> query = entityManager.createQuery(
-                "SELECT COUNT(p) FROM Projet p", Long.class);
-        return query.getSingleResult();
+    public List<Projet> getTousLesProjets() throws SQLException {
+        List<Projet> projets = new ArrayList<>();
+        String query = "SELECT * FROM projet";
+        try (Connection con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                Projet p = new Projet(rs.getInt("id_projet"), rs.getString("nom"), rs.getString("description"),
+                        rs.getDate("date_debut"), rs.getDate("date_fin"), rs.getDouble("budget"));
+                projets.add(p);
+            }
+        }
+        return projets;
+    }
+
+    public void modifierProjet(Projet projet) throws SQLException {
+        String query = "UPDATE Projet SET nom=?, description=?, dateDebut=?, dateFin=?, budget=? WHERE id=?";
+        try (Connection con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setString(1, projet.getNom());
+            ps.setString(2, projet.getDescription());
+            ps.setDate(3, new java.sql.Date(projet.getDateDebut().getTime()));
+            ps.setDate(4, new java.sql.Date(projet.getDateFin().getTime()));
+            ps.setDouble(5, projet.getBudget());
+            ps.setInt(6, projet.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void supprimerProjet(int id) throws SQLException {
+        String query = "DELETE FROM Projet WHERE id=?";
+        try (Connection con = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+             PreparedStatement ps = con.prepareStatement(query)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        }
     }
 }
