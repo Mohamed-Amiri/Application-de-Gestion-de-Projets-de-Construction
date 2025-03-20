@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="model.Projet" %>
+<%@ page import="dao.ProjetDAO" %>
 
 <!DOCTYPE html>
 <html>
@@ -9,12 +10,8 @@
     <title>Gestion des Projets</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        body {
-            padding: 20px;
-        }
-        .container {
-            margin-top: 20px;
-        }
+        body { padding: 20px; }
+        .container { margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -25,7 +22,7 @@
     <!-- Ajout d'un Projet -->
     <h2>Ajouter un Projet</h2>
     <form action="ProjetServlet" method="Post">
-<%--        <input type="hidden" name="action" value="ajouter">--%>
+        <input type="hidden" name="action" value="ajouter">
         <div class="form-group">
             <label for="nom">Nom:</label>
             <input type="text" class="form-control" id="nom" name="nom" required>
@@ -33,6 +30,14 @@
         <div class="form-group">
             <label for="description">Description:</label>
             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="dateDebut">Date de Début:</label>
+            <input type="date" class="form-control" id="dateDebut" name="dateDebut" required>
+        </div>
+        <div class="form-group">
+            <label for="dateFin">Date de Fin:</label>
+            <input type="date" class="form-control" id="dateFin" name="dateFin" required>
         </div>
         <div class="form-group">
             <label for="budget">Budget:</label>
@@ -54,12 +59,13 @@
             <th>Date de Début</th>
             <th>Date de Fin</th>
             <th>Budget</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody>
         <%
-            List<Projet> projets = (List<Projet>) request.getAttribute("projets");
-
+            ProjetDAO projetDAO = new ProjetDAO();
+            List<Projet> projets = projetDAO.getTousLesProjets();
             if (projets != null && !projets.isEmpty()) {
                 for (Projet projet : projets) {
         %>
@@ -70,13 +76,27 @@
             <td><%= projet.getDateDebut() %></td>
             <td><%= projet.getDateFin() %></td>
             <td><%= projet.getBudget() %></td>
+            <td>
+                <!-- Formulaire pour modifier un projet -->
+                <form action="ProjetServlet" method="post" style="display:inline;">
+                    <input type="hidden" name="action" value="modifier">
+                    <input type="hidden" name="id" value="<%= projet.getId() %>">
+                    <button type="submit" class="btn btn-warning btn-sm">Modifier</button>
+                </form>
+                <!-- Formulaire pour supprimer un projet -->
+                <form action="ProjetServlet" method="post" style="display:inline;">
+                    <input type="hidden" name="action" value="supprimer">
+                    <input type="hidden" name="id" value="<%= projet.getId() %>">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ?');">Supprimer</button>
+                </form>
+            </td>
         </tr>
         <%
             }
         } else {
         %>
         <tr>
-            <td colspan="6">Aucun projet trouvé.</td>
+            <td colspan="7">Aucun projet trouvé.</td>
         </tr>
         <%
             }
