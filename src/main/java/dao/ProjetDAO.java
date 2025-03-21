@@ -77,17 +77,17 @@ public class ProjetDAO {
         }
     }
     public Projet getProjetParId(int id) throws SQLException {
-        String sql = "SELECT * FROM projet WHERE id = ?";
+        String sql = "SELECT * FROM projet WHERE id_projet = ?";
         try (PreparedStatement statement = ConnectToDB.getConnection().prepareStatement(sql)) {
             statement.setInt(1, id);
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
                     return new Projet(
-                            rs.getInt("id"),
+                            rs.getInt("id_projet"),
                             rs.getString("nom"),
                             rs.getString("description"),
-                            rs.getDate("dateDebut"),
-                            rs.getDate("dateFin"),
+                            rs.getDate("date_debut"),
+                            rs.getDate("date_fin"),
                             rs.getDouble("budget")
                     );
                 }
